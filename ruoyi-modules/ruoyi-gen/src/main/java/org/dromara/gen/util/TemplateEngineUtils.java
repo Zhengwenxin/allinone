@@ -108,7 +108,7 @@ public class TemplateEngineUtils {
         context.put("basePackage", getPackagePrefix(packageName));
         context.put("packageName", packageName);
         context.put("author", genTable.getFunctionAuthor());
-        context.put("datetime", DateUtils.getDate());
+        context.put("datetime", DateUtils.now());
         context.put("pkColumn", genTable.getPkColumn());
         String dicts = getDicts(genTable);
         context.put("importList", getImportList(genTable));
@@ -172,6 +172,7 @@ public class TemplateEngineUtils {
         boolean needDigit = false;
         boolean needDateField = false;
         boolean needSwitchField = false;
+        boolean needParseTime = false;
         String firstTreeListField = StringUtils.EMPTY;
         for (GenTableColumn column : genTable.getColumns()) {
             boolean writable = column.isInsert() || column.isEdit();
@@ -187,6 +188,7 @@ public class TemplateEngineUtils {
             needDigit = needDigit || writable && StringUtils.equals(column.getHtmlType(), GenConstants.HTML_INPUT_NUMBER);
             needDateField = needDateField || writable && StringUtils.equals(column.getHtmlType(), GenConstants.HTML_DATETIME);
             needSwitchField = needSwitchField || (writable || column.isList()) && StringUtils.equals(column.getHtmlType(), GenConstants.HTML_SWITCH);
+            needParseTime = needParseTime || column.isList() && StringUtils.equals(column.getHtmlType(), GenConstants.HTML_DATETIME);
             if (StringUtils.isBlank(firstTreeListField) && column.isList()) {
                 firstTreeListField = column.getJavaField();
             }
@@ -206,6 +208,7 @@ public class TemplateEngineUtils {
         context.put("needDigit", needDigit);
         context.put("needDateField", needDateField);
         context.put("needSwitchField", needSwitchField);
+        context.put("needParseTime", needParseTime);
         context.put("firstTreeListField", firstTreeListField);
     }
 
@@ -355,6 +358,7 @@ public class TemplateEngineUtils {
         String javaPath = PROJECT_PATH + "/" + StringUtils.replace(packageName, ".", "/");
         String mybatisPath = MYBATIS_PATH + "/" + moduleName;
         String frontendPath = getFrontendPath(genTable.getFrontendType());
+        String frontendPagePath = getFrontendPagePath(genTable.getFrontendType());
         // templatePath
         // genFilePathFormat
         if (template.contains("domain.java.")) {
@@ -380,10 +384,10 @@ public class TemplateEngineUtils {
         } else if (template.contains("types.ts.")) {
             fileName = StringUtils.format("{}/api/{}/{}/types.ts", frontendPath, moduleName, businessName);
         } else if (isFrontendPageTemplate(template, GenConstants.FRONTEND_INDEX_TEMPLATE_PREFIX)) {
-            fileName = StringUtils.format("{}/views/{}/{}/index.{}", frontendPath, moduleName, businessName,
+            fileName = StringUtils.format("{}/{}/{}/{}/index.{}", frontendPath, frontendPagePath, moduleName, businessName,
                 getFrontendPageExtension(template, GenConstants.FRONTEND_INDEX_TEMPLATE_PREFIX));
         } else if (isFrontendPageTemplate(template, GenConstants.FRONTEND_INDEX_TREE_TEMPLATE_PREFIX)) {
-            fileName = StringUtils.format("{}/views/{}/{}/index.{}", frontendPath, moduleName, businessName,
+            fileName = StringUtils.format("{}/{}/{}/{}/index.{}", frontendPath, frontendPagePath, moduleName, businessName,
                 getFrontendPageExtension(template, GenConstants.FRONTEND_INDEX_TREE_TEMPLATE_PREFIX));
         }
         return fileName;
@@ -397,6 +401,16 @@ public class TemplateEngineUtils {
      */
     private static String getFrontendPath(String frontendType) {
         return resolveFrontendType(frontendType);
+    }
+
+    /**
+     * 获取前端页面输出目录。
+     *
+     * @param frontendType 前端模板类型
+     * @return 页面输出目录
+     */
+    private static String getFrontendPagePath(String frontendType) {
+        return GenConstants.FRONTEND_TYPE_REACT.equals(resolveFrontendType(frontendType)) ? "pages" : "views";
     }
 
     /**
@@ -511,14 +525,24 @@ public class TemplateEngineUtils {
         List<GenTableColumn> columns = genTable.getColumns();
         HashSet<String> importList = new HashSet<>();
         for (GenTableColumn column : columns) {
-            if (!column.isSuperColumn() && GenConstants.TYPE_DATE.equals(column.getJavaType())) {
+            if (needImportColumn(column) && GenConstants.TYPE_DATE.equals(column.getJavaType())) {
                 importList.add("java.time.LocalDateTime");
                 importList.add("com.fasterxml.jackson.annotation.JsonFormat");
-            } else if (!column.isSuperColumn() && GenConstants.TYPE_BIGDECIMAL.equals(column.getJavaType())) {
+            } else if (needImportColumn(column) && GenConstants.TYPE_BIGDECIMAL.equals(column.getJavaType())) {
                 importList.add("java.math.BigDecimal");
             }
         }
         return importList;
+    }
+
+    /**
+     * 判断列是否需要生成类型导入。
+     *
+     * @param column 列对象
+     * @return 需要生成类型导入返回 {@code true}
+     */
+    private static boolean needImportColumn(GenTableColumn column) {
+        return !column.isSuperColumn() || column.isQuery();
     }
 
     /**
@@ -704,7 +728,16 @@ public class TemplateEngineUtils {
         if (StringUtils.equals(column.getJavaType(), GenConstants.TYPE_LONG)) {
             return value + "L";
         }
-        if (StringUtils.equalsAny(column.getJavaType(), GenConstants.TYPE_INTEGER, GenConstants.TYPE_DOUBLE, GenConstants.TYPE_BIGDECIMAL)) {
+        if (StringUtils.equals(column.getJavaType(), GenConstants.TYPE_FLOAT)) {
+            return value + "F";
+        }
+        if (StringUtils.equals(column.getJavaType(), GenConstants.TYPE_DOUBLE)) {
+            return value + "D";
+        }
+        if (StringUtils.equals(column.getJavaType(), GenConstants.TYPE_BIGDECIMAL)) {
+            return "new java.math.BigDecimal(\"" + value + "\")";
+        }
+        if (StringUtils.equals(column.getJavaType(), GenConstants.TYPE_INTEGER)) {
             return value;
         }
         return "\"" + value + "\"";
@@ -721,7 +754,8 @@ public class TemplateEngineUtils {
         if (ObjectUtil.isNull(column) || StringUtils.isBlank(value)) {
             return "undefined";
         }
-        if (StringUtils.equalsAny(column.getJavaType(), GenConstants.TYPE_LONG, GenConstants.TYPE_INTEGER, GenConstants.TYPE_DOUBLE, GenConstants.TYPE_BIGDECIMAL)) {
+        if (StringUtils.equalsAny(column.getJavaType(), GenConstants.TYPE_LONG, GenConstants.TYPE_INTEGER,
+            GenConstants.TYPE_DOUBLE, GenConstants.TYPE_FLOAT, GenConstants.TYPE_BIGDECIMAL)) {
             return value;
         }
         return "'" + value + "'";

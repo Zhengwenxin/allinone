@@ -209,7 +209,7 @@ public class FlwChartExtServiceImpl implements ChartExtService {
             // 添加具体信息项：账号、耗时、时间
             info.add(buildInfoItem("用户账号", userDTO.getUserName()));
             info.add(buildInfoItem("审批状态", dictType.get(task.getFlowStatus())));
-            info.add(buildInfoItem("审批耗时", DateUtils.getTimeDifference(task.getUpdateTime(), task.getCreateTime())));
+            info.add(buildInfoItem("审批耗时", DateUtils.formatBetweenBySecond(task.getUpdateTime(), task.getCreateTime())));
             info.add(buildInfoItem("办理时间", DateUtils.formatDateTime(task.getUpdateTime())));
         }
     }

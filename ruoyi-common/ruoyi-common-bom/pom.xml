@@ -14,7 +14,7 @@
     </description>
 
     <properties>
-        <revision>6.0.0-BETA</revision>
+        <revision>6.0.0</revision>
     </properties>
 
     <dependencyManagement>
@@ -199,6 +199,13 @@
             <dependency>
                 <groupId>org.dromara</groupId>
                 <artifactId>ruoyi-common-push</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- liteflow模块 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>ruoyi-common-liteflow</artifactId>
                 <version>${revision}</version>
             </dependency>
 

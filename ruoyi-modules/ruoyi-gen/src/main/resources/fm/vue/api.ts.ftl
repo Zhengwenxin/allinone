@@ -1,5 +1,7 @@
 import type { ${BusinessName}Form, ${BusinessName}Query, ${BusinessName}VO } from '@/api/${moduleName}/${businessName}/types';
+<#if !table.tree>
 import type { PageResult } from '@/api/types';
+</#if>
 import type { AxiosPromise } from '@/utils/api-types';
 import request from '@/utils/request';
 
@@ -8,8 +10,7 @@ import request from '@/utils/request';
  * @param query
  * @returns {*}
  */
-
-export const list${BusinessName} = (query?: ${BusinessName}Query): AxiosPromise<PageResult<${BusinessName}VO>> => {
+export const list${BusinessName} = (query?: ${BusinessName}Query): AxiosPromise<<#if table.tree>${BusinessName}VO[]<#else>PageResult<${BusinessName}VO></#if>> => {
   return request({
     url: '/${moduleName}/${businessName}/list',
     method: 'get',
@@ -98,6 +99,3 @@ export const del${BusinessName} = (${pkColumn.javaField}: string | number | Arra
     method: 'delete'
   });
 };
-
-
-

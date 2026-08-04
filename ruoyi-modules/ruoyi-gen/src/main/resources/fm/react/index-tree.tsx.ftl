@@ -62,6 +62,7 @@ import { useDict } from '@/hooks/useDict';
 <#if enableExport>
 import { useTableExport } from '@/hooks/useTableExport';
 </#if>
+import { useTableScroll } from '@/hooks/useTableScroll';
 import { useTreeTableExpand } from '@/hooks/useTreeTableExpand';
 import { useUserStore } from '@/stores/userStore';
 <#if needDict>
@@ -103,6 +104,7 @@ const ${statusField}InactiveValue = <#if statusColumn.javaType == "Boolean">fals
 </#if>
 export default function ${BusinessName}Page() {
   const actionRef = useRef<ActionType | undefined>(undefined);
+  const { tableScroll } = useTableScroll(1000);
   const [form] = Form.useForm<${BusinessName}Form>();
   const userInfo = useUserStore(state => state.userInfo);
 <#if needDict>
@@ -308,7 +310,7 @@ export default function ${BusinessName}Page() {
         actionRef={actionRef}
         rowKey="${treeCode}"
         columns={columns}
-        scroll={{ x: 1000 }}
+        scroll={tableScroll}
         pagination={false}
         search={{ labelWidth: 90 }}
         expandable={{
@@ -365,8 +367,7 @@ export default function ${BusinessName}Page() {
         <ProFormText name="${pkColumn.javaField}" hidden />
 <#list columns as column>
 <#if (column.insert || column.edit) && !column.pk>
-<#assign field = column.javaField>
-<#if field == treeParentCode>
+<#if column.javaField == treeParentCode>
         <ProFormTreeSelect
           name="${column.javaField}"
           label="${column.columnLabel}"
@@ -421,7 +422,3 @@ export default function ${BusinessName}Page() {
     </PageContainer>
   );
 }
-
-
-
-

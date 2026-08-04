@@ -14,6 +14,7 @@ import org.dromara.common.core.enums.BusinessStatusEnum;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
+import org.dromara.common.liteflow.utils.LiteFlowUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.query.LambdaJoinQueryBuilder;
 import org.dromara.common.mybatis.core.query.QueryBuilder;
@@ -41,9 +42,9 @@ import org.dromara.workflow.domain.bo.FlowCancelBo;
 import org.dromara.workflow.domain.bo.FlowInstanceBo;
 import org.dromara.workflow.domain.bo.FlowInvalidBo;
 import org.dromara.workflow.domain.bo.FlowVariableBo;
+import org.dromara.workflow.domain.context.InstanceDeleteContext;
 import org.dromara.workflow.domain.vo.FlowHisTaskVo;
 import org.dromara.workflow.domain.vo.FlowInstanceVo;
-import org.dromara.workflow.handler.FlowProcessEventHandler;
 import org.dromara.workflow.mapper.FlwCategoryMapper;
 import org.dromara.workflow.mapper.FlwInstanceMapper;
 import org.dromara.workflow.service.IFlwInstanceService;
@@ -52,7 +53,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.function.Function;
 
 /**
  * 流程实例 服务层实现
@@ -65,12 +65,13 @@ import java.util.function.Function;
 @Service
 public class FlwInstanceServiceImpl implements IFlwInstanceService {
 
+    private static final String DELETE_INSTANCE_CHAIN = "deleteInstanceChain";
+
     private final InsService insService;
     private final DefService defService;
     private final TaskService taskService;
     private final FlowHisTaskMapper flowHisTaskMapper;
     private final FlowInstanceMapper flowInstanceMapper;
-    private final FlowProcessEventHandler flowProcessEventHandler;
     private final IFlwTaskService flwTaskService;
     private final FlwInstanceMapper flwInstanceMapper;
     private final FlwCategoryMapper flwCategoryMapper;
@@ -205,17 +206,9 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteByBusinessIds(List<String> businessIds) {
-        List<FlowInstance> flowInstances = flowInstanceMapper.selectList(
-            QueryBuilder.lambda(FlowInstance.class)
-                .in(FlowInstance::getBusinessId, businessIds)
-                .build());
-        if (CollUtil.isEmpty(flowInstances)) {
-            log.warn("未找到对应的流程实例信息，无法执行删除操作。");
-            return false;
-        }
-        // 发送事件
-        processDeleteHandler(flowInstances);
-        return insService.remove(StreamUtils.toList(flowInstances, FlowInstance::getId));
+        InstanceDeleteContext context = InstanceDeleteContext.byBusinessIds(businessIds);
+        LiteFlowUtils.execute(DELETE_INSTANCE_CHAIN, context);
+        return context.isResult();
     }
 
     /**
@@ -226,16 +219,9 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteByInstanceIds(List<Long> instanceIds) {
-        // 获取实例信息
-        List<FlowInstance> flowInstances = flowInstanceMapper.selectByIds(instanceIds);
-        if (CollUtil.isEmpty(flowInstances)) {
-            log.warn("未找到对应的流程实例信息，无法执行删除操作。");
-            return false;
-        }
-        // 发送事件
-        processDeleteHandler(flowInstances);
-        // 删除实例
-        return insService.remove(instanceIds);
+        InstanceDeleteContext context = InstanceDeleteContext.byInstanceIds(instanceIds);
+        LiteFlowUtils.execute(DELETE_INSTANCE_CHAIN, context);
+        return context.isResult();
     }
 
     /**
@@ -246,51 +232,9 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteHisByInstanceIds(List<Long> instanceIds) {
-        // 获取实例信息
-        List<FlowInstance> flowInstances = flowInstanceMapper.selectByIds(instanceIds);
-        if (CollUtil.isEmpty(flowInstances)) {
-            log.warn("未找到对应的流程实例信息，无法执行删除操作。");
-            return false;
-        }
-        // 发送事件
-        processDeleteHandler(flowInstances);
-        List<FlowTask> flowTaskList = flwTaskService.selectByInstIds(instanceIds);
-        if (CollUtil.isNotEmpty(flowTaskList)) {
-            FlowEngine.userService().deleteByTaskIds(StreamUtils.toList(flowTaskList, FlowTask::getId));
-        }
-        FlowEngine.taskService().deleteByInsIds(instanceIds);
-        FlowEngine.hisTaskService().deleteByInsIds(instanceIds);
-        FlowEngine.insService().removeByIds(instanceIds);
-        return true;
-    }
-
-
-    private void processDeleteHandler(List<FlowInstance> flowInstances) {
-
-        String userId = LoginHelper.getUserIdStr();
-        for (FlowInstance flowInstance : flowInstances) {
-            //如果创建人与当前登陆人一致或者当前登陆人为管理员才能删除
-            if (LoginHelper.isSuperAdmin() || flowInstance.getCreateBy().equals(userId)) {
-                continue;
-            }
-            throw new ServiceException("权限不足，无法删除流程实例信息!");
-        }
-        // 获取定义信息
-        Map<Long, Definition> definitionMap = StreamUtils.toMap(
-            defService.getByIds(StreamUtils.toList(flowInstances, Instance::getDefinitionId)),
-            Definition::getId,
-            Function.identity()
-        );
-
-        // 逐一触发删除事件
-        flowInstances.forEach(instance -> {
-            Definition definition = definitionMap.get(instance.getDefinitionId());
-            if (ObjectUtil.isNull(definition)) {
-                log.warn("实例 ID: {} 对应的流程定义信息未找到，跳过删除事件触发。", instance.getId());
-                return;
-            }
-            flowProcessEventHandler.processDeleteHandler(definition.getFlowCode(), instance.getBusinessId());
-        });
+        InstanceDeleteContext context = InstanceDeleteContext.byHistoryInstanceIds(instanceIds);
+        LiteFlowUtils.execute(DELETE_INSTANCE_CHAIN, context);
+        return context.isResult();
     }
 
     /**

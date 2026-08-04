@@ -86,6 +86,11 @@ public interface GenConstants {
     String FRONTEND_TYPE_VUE = "vue";
 
     /**
+     * React 前端模板类型，对应模板根目录下的 react 目录。
+     */
+    String FRONTEND_TYPE_REACT = "react";
+
+    /**
      * 树根节点值
      */
     String TREE_ROOT_VALUE = "treeRootValue";
@@ -103,38 +108,39 @@ public interface GenConstants {
     /**
      * 数据库字符串类型
      */
-    String[] COLUMNTYPE_STR = {"char", "varchar", "enum", "set", "nchar", "nvarchar", "varchar2", "nvarchar2"};
+    String[] COLUMNTYPE_STR = {"char", "varchar", "enum", "set", "nchar", "nvarchar", "varchar2", "nvarchar2",
+        "long varchar", "long nvarchar", "uniqueidentifier", "uuid", "json", "jsonb", "xml"};
 
     /**
      * 数据库文本类型
      */
     String[] COLUMNTYPE_TEXT = {"tinytext", "text", "mediumtext", "longtext", "binary", "varbinary", "blob",
-        "ntext", "image", "bytea"};
+        "ntext", "image", "bytea", "clob", "nclob", "long", "long raw", "raw"};
 
     /**
      * 数据库时间类型
      */
     String[] COLUMNTYPE_TIME = {"datetime", "time", "date", "timestamp", "year", "interval",
-        "smalldatetime", "datetime2", "datetimeoffset", "timestamptz"};
+        "smalldatetime", "datetime2", "datetimeoffset", "timestamptz", "timestamp with time zone",
+        "timestamp without time zone", "time with time zone", "time without time zone"};
 
     /**
      * 数据库数字类型
      */
     String[] COLUMNTYPE_NUMBER = {"tinyint", "smallint", "mediumint", "int", "int2", "int4", "int8", "number", "integer",
-        "bit", "bigint", "float", "float4", "float8", "double", "decimal", "numeric", "real", "double precision",
-        "smallserial", "serial", "bigserial", "money", "smallmoney"};
+        "bit", "boolean", "bool", "bigint", "float", "float4", "float8", "double", "decimal", "dec", "fixed",
+        "numeric", "real", "double precision", "binary_float", "binary_double", "smallserial", "serial",
+        "serial2", "serial4", "serial8", "bigserial", "money", "smallmoney"};
 
     /**
      * BO对象 不需要添加字段
      */
-    String[] COLUMNNAME_NOT_ADD = {"create_dept", "create_by", "create_time", "del_flag", "update_by",
-        "update_time", "version"};
+    String[] COLUMNNAME_NOT_ADD = {"del_flag", "version"};
 
     /**
      * BO对象 不需要编辑字段
      */
-    String[] COLUMNNAME_NOT_EDIT = {"create_dept", "create_by", "create_time", "del_flag", "update_by",
-        "update_time", "version"};
+    String[] COLUMNNAME_NOT_EDIT = {"del_flag", "version"};
 
     /**
      * VO对象 不需要返回字段
@@ -145,8 +151,7 @@ public interface GenConstants {
     /**
      * BO对象 不需要查询字段
      */
-    String[] COLUMNNAME_NOT_QUERY = {"id", "create_dept", "create_by", "create_time", "del_flag", "update_by",
-        "update_time", "remark", "version"};
+    String[] COLUMNNAME_NOT_QUERY = {"id", "del_flag", "remark", "version"};
 
     /**
      * Entity基类字段
@@ -227,6 +232,11 @@ public interface GenConstants {
      * 浮点型
      */
     String TYPE_DOUBLE = "Double";
+
+    /**
+     * 单精度浮点型
+     */
+    String TYPE_FLOAT = "Float";
 
     /**
      * 高精度计算类型

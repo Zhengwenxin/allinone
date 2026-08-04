@@ -23,11 +23,11 @@ import java.util.Base64;
 public class EncryptResponseBodyWrapper extends HttpServletResponseWrapper {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final Charset RESPONSE_CHARSET = StandardCharsets.UTF_8;
 
     private final ByteArrayOutputStream byteArrayOutputStream;
     private final ServletOutputStream servletOutputStream;
     private PrintWriter printWriter;
-    private Charset charset;
 
     /**
      * 构造加密响应包装器。
@@ -39,14 +39,12 @@ public class EncryptResponseBodyWrapper extends HttpServletResponseWrapper {
         super(response);
         this.byteArrayOutputStream = new ByteArrayOutputStream();
         this.servletOutputStream = this.getOutputStream();
-        this.charset = resolveCharset(response);
     }
 
     @Override
     public PrintWriter getWriter() {
         if (printWriter == null) {
-            charset = resolveCharset((HttpServletResponse) getResponse());
-            printWriter = new PrintWriter(new OutputStreamWriter(byteArrayOutputStream, charset));
+            printWriter = new PrintWriter(new OutputStreamWriter(byteArrayOutputStream, RESPONSE_CHARSET));
         }
         return printWriter;
     }
@@ -90,7 +88,7 @@ public class EncryptResponseBodyWrapper extends HttpServletResponseWrapper {
      */
     public String getContent() throws IOException {
         flushBuffer();
-        return byteArrayOutputStream.toString(charset);
+        return byteArrayOutputStream.toString(RESPONSE_CHARSET);
     }
 
     /**
@@ -114,13 +112,13 @@ public class EncryptResponseBodyWrapper extends HttpServletResponseWrapper {
         // vue版本需要设置
         servletResponse.addHeader("Access-Control-Expose-Headers", headerFlag);
         servletResponse.setHeader(headerFlag, encryptPassword);
-        servletResponse.setCharacterEncoding(charset.name());
+        servletResponse.setCharacterEncoding(RESPONSE_CHARSET.name());
 
         // 获取原始内容
         String originalBody = this.getContent();
         // 对内容进行加密
         String encryptContent = EncryptUtils.encryptByAes(originalBody, aesPassword);
-        servletResponse.setContentLengthLong(encryptContent.getBytes(charset).length);
+        servletResponse.setContentLengthLong(encryptContent.getBytes(RESPONSE_CHARSET).length);
         return encryptContent;
     }
 
@@ -152,14 +150,6 @@ public class EncryptResponseBodyWrapper extends HttpServletResponseWrapper {
                 byteArrayOutputStream.write(b, off, len);
             }
         };
-    }
-
-    private Charset resolveCharset(HttpServletResponse response) {
-        String characterEncoding = response.getCharacterEncoding();
-        if (characterEncoding == null) {
-            return StandardCharsets.UTF_8;
-        }
-        return Charset.forName(characterEncoding);
     }
 
     private String generateAesPassword() {
