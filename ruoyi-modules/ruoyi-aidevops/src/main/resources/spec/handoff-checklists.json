@@ -1,0 +1,111 @@
+{
+  "H1": {
+    "name": "需求就绪",
+    "fromRole": "product",
+    "toRole": "design,dev,qa",
+    "requiredArtifacts": ["spec", "acceptance_criteria"],
+    "checks": [
+      "问题、目标、非目标清晰",
+      "用户角色与场景完整",
+      "业务规则可执行",
+      "状态机覆盖正常/异常/取消/超时",
+      "字段类型、必填、校验、权限明确",
+      "AC 使用 Given-When-Then 且可测试",
+      "NFR 有指标和目标",
+      "阻塞型开放问题已关闭或明确不阻塞",
+      "历史需求/决策/反馈已关联",
+      "产品负责人已确认"
+    ]
+  },
+  "H2": {
+    "name": "设计就绪",
+    "fromRole": "design",
+    "toRole": "frontend,backend",
+    "requiredArtifacts": ["page", "design_spec"],
+    "checks": [
+      "页面清单与 Spec 场景一一对应",
+      "正常/异常/空/加载态齐全",
+      "字段字典与 Spec 字段一致",
+      "权限与敏感数据展示明确",
+      "组件映射与设计令牌明确",
+      "交互说明可还原",
+      "设计评审问题已关闭",
+      "设计负责人已确认"
+    ]
+  },
+  "H3": {
+    "name": "接口契约冻结",
+    "fromRole": "backend,frontend",
+    "toRole": "frontend,backend,qa",
+    "requiredArtifacts": ["openapi"],
+    "checks": [
+      "OpenAPI 通过 lint",
+      "字段与 Spec/原型一致",
+      "错误码、鉴权、分页、幂等明确",
+      "Mock 可用",
+      "契约测试可执行",
+      "敏感字段脱敏",
+      "技术负责人已冻结"
+    ]
+  },
+  "H4": {
+    "name": "开发完成",
+    "fromRole": "dev",
+    "toRole": "qa",
+    "requiredArtifacts": ["task", "mr", "unit_test"],
+    "checks": [
+      "任务上下文包完整",
+      "变更说明与影响面已填写",
+      "单测覆盖 AC",
+      "冒烟通过",
+      "测试数据可用",
+      "Feature Flag/回滚开关已配置",
+      "MR 已关联需求/任务/AC"
+    ]
+  },
+  "H5": {
+    "name": "测试就绪",
+    "fromRole": "qa",
+    "toRole": "release",
+    "requiredArtifacts": ["test_plan", "test_case", "test_run"],
+    "checks": [
+      "AC 全覆盖或有显式豁免",
+      "边界/异常/权限用例齐全",
+      "环境与数据可用",
+      "自动化结果已归档",
+      "阻塞缺陷为 0 或有豁免",
+      "遗留风险已记录",
+      "测试负责人已确认"
+    ]
+  },
+  "H6": {
+    "name": "发布就绪",
+    "fromRole": "dev,qa",
+    "toRole": "ops",
+    "requiredArtifacts": ["release", "rollback_plan", "monitor_plan"],
+    "checks": [
+      "质量门禁通过",
+      "安全扫描通过",
+      "发布清单与变更项完整",
+      "回滚方案可执行",
+      "数据库变更已评审",
+      "监控项与告警已配置",
+      "值班人与 Runbook 已确认",
+      "发布经理已审批"
+    ]
+  },
+  "H7": {
+    "name": "运行反馈",
+    "fromRole": "ops",
+    "toRole": "product,dev",
+    "requiredArtifacts": ["incident", "postmortem"],
+    "checks": [
+      "故障影响范围明确",
+      "根因分析有证据",
+      "关联需求/代码/发布版本完整",
+      "后续动作有负责人和截止时间",
+      "复盘文档已评审",
+      "需求/技术债候选已创建"
+    ]
+  }
+}

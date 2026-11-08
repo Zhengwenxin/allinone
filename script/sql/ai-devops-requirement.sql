@@ -1,7 +1,7 @@
 -- ----------------------------
 -- AI-DevOps 需求主表
 -- ----------------------------
-create table ai_requirement
+create table if not exists ai_requirement
 (
   requirement_id       bigint(20)    not null                   comment '需求ID',
   tenant_id            varchar(20)   default '000000'           comment '租户编号',
@@ -39,7 +39,7 @@ create table ai_requirement
 -- ----------------------------
 -- AI-DevOps 用户故事表
 -- ----------------------------
-create table ai_requirement_story
+create table if not exists ai_requirement_story
 (
   story_id            bigint(20)    not null                   comment '用户故事ID',
   tenant_id           varchar(20)   default '000000'           comment '租户编号',
@@ -63,7 +63,7 @@ create table ai_requirement_story
 -- ----------------------------
 -- AI-DevOps 需求变更表
 -- ----------------------------
-create table ai_requirement_change
+create table if not exists ai_requirement_change
 (
   change_id       bigint(20)    not null                   comment '需求变更ID',
   tenant_id       varchar(20)   default '000000'           comment '租户编号',
@@ -85,10 +85,13 @@ create table ai_requirement_change
 -- ----------------------------
 -- 可选：AI-DevOps 需求管理菜单权限
 -- ----------------------------
-insert into sys_menu values('6100', 'AI-DevOps平台', '0', '6', 'ai-devops', null, '', 1, 0, 'M', '0', '0', '', 'workflow', 103, 1, sysdate(), null, null, 'AI-DevOps平台目录');
-insert into sys_menu values('6101', '需求管理', '6100', '1', 'requirement', 'ai-devops/requirement/index', '', 1, 0, 'C', '0', '0', 'ai:requirement:list', 'documentation', 103, 1, sysdate(), null, null, 'AI-DevOps需求管理菜单');
-insert into sys_menu values('6111', '需求查询', '6101', '1', '', '', '', 1, 0, 'F', '0', '0', 'ai:requirement:query', '#', 103, 1, sysdate(), null, null, '');
-insert into sys_menu values('6112', '需求新增', '6101', '2', '', '', '', 1, 0, 'F', '0', '0', 'ai:requirement:add', '#', 103, 1, sysdate(), null, null, '');
-insert into sys_menu values('6113', '需求修改', '6101', '3', '', '', '', 1, 0, 'F', '0', '0', 'ai:requirement:edit', '#', 103, 1, sysdate(), null, null, '');
-insert into sys_menu values('6114', '需求删除', '6101', '4', '', '', '', 1, 0, 'F', '0', '0', 'ai:requirement:remove', '#', 103, 1, sysdate(), null, null, '');
-insert into sys_menu values('6115', '需求导出', '6101', '5', '', '', '', 1, 0, 'F', '0', '0', 'ai:requirement:export', '#', 103, 1, sysdate(), null, null, '');
+insert ignore into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, query_param, is_frame, is_cache, menu_type, visible, status, perms, icon, create_dept, create_by, create_time, update_by, update_time, remark)
+values('6100', 'AI-DevOps平台', '0', '6', 'ai-devops', null, '', 1, 0, 'M', '0', '0', '', 'workflow', 103, 1, sysdate(), null, null, 'AI-DevOps平台目录');
+insert ignore into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, query_param, is_frame, is_cache, menu_type, visible, status, perms, icon, create_dept, create_by, create_time, update_by, update_time, remark)
+values('6101', '需求管理', '6100', '1', 'requirement', 'ai-devops/requirement/index', '', 1, 0, 'C', '0', '0', 'ai:requirement:list', 'documentation', 103, 1, sysdate(), null, null, 'AI-DevOps需求管理菜单');
+insert ignore into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, query_param, is_frame, is_cache, menu_type, visible, status, perms, icon, create_dept, create_by, create_time, update_by, update_time, remark)
+values('6111', '需求查询', '6101', '1', '', '', '', 1, 0, 'F', '0', '0', 'ai:requirement:query', '#', 103, 1, sysdate(), null, null, ''),
+       ('6112', '需求新增', '6101', '2', '', '', '', 1, 0, 'F', '0', '0', 'ai:requirement:add', '#', 103, 1, sysdate(), null, null, ''),
+       ('6113', '需求修改', '6101', '3', '', '', '', 1, 0, 'F', '0', '0', 'ai:requirement:edit', '#', 103, 1, sysdate(), null, null, ''),
+       ('6114', '需求删除', '6101', '4', '', '', '', 1, 0, 'F', '0', '0', 'ai:requirement:remove', '#', 103, 1, sysdate(), null, null, ''),
+       ('6115', '需求导出', '6101', '5', '', '', '', 1, 0, 'F', '0', '0', 'ai:requirement:export', '#', 103, 1, sysdate(), null, null, '');

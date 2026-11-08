@@ -1,0 +1,244 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aidevops.local/schemas/spec.json",
+  "title": "AI-DevOps Structured Spec",
+  "description": "结构化需求 Spec：唯一事实源。PRD、设计简报、接口草案、测试计划均由该结构生成视图。",
+  "type": "object",
+  "required": [
+    "spec_id",
+    "version",
+    "title",
+    "status",
+    "problem",
+    "goals",
+    "non_goals",
+    "personas",
+    "scenarios",
+    "business_rules",
+    "acceptance_criteria",
+    "open_questions",
+    "decisions"
+  ],
+  "properties": {
+    "spec_id": {
+      "type": "string",
+      "pattern": "^REQ-[0-9]{4}-[0-9]{3,}$",
+      "description": "需求编号，如 REQ-2026-018"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "clarifying", "ready", "approved", "changed", "archived"]
+    },
+    "owner": {
+      "type": "string"
+    },
+    "problem": {
+      "type": "string",
+      "minLength": 1,
+      "description": "要解决的问题，而不是功能清单"
+    },
+    "goals": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" }
+    },
+    "non_goals": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "personas": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/persona" }
+    },
+    "scenarios": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/scenario" }
+    },
+    "business_rules": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/businessRule" }
+    },
+    "state_machine": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/transition" }
+    },
+    "fields": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/field" }
+    },
+    "permissions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/permission" }
+    },
+    "nfr": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/nfr" }
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/ac" }
+    },
+    "analytics": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/analytics" }
+    },
+    "open_questions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/question" }
+    },
+    "decisions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/decision" }
+    },
+    "links": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/link" }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "persona": {
+      "type": "object",
+      "required": ["role"],
+      "properties": {
+        "role": { "type": "string" },
+        "scenario": { "type": "string" },
+        "goals": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "scenario": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^S[0-9]+$" },
+        "name": { "type": "string" },
+        "steps": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "businessRule": {
+      "type": "object",
+      "required": ["id", "rule"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^BR-[0-9]+$" },
+        "rule": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "transition": {
+      "type": "object",
+      "required": ["from", "event", "to"],
+      "properties": {
+        "from": { "type": "string" },
+        "event": { "type": "string" },
+        "to": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "field": {
+      "type": "object",
+      "required": ["name", "type", "required"],
+      "properties": {
+        "name": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": ["string", "integer", "number", "boolean", "date", "datetime", "array", "object", "file"]
+        },
+        "required": { "type": "boolean" },
+        "description": { "type": "string" },
+        "validation": { "type": "string" },
+        "permission": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "permission": {
+      "type": "object",
+      "required": ["role", "action"],
+      "properties": {
+        "role": { "type": "string" },
+        "action": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "nfr": {
+      "type": "object",
+      "required": ["id", "rule"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^NFR-[0-9]+$" },
+        "rule": { "type": "string" },
+        "metric": { "type": "string" },
+        "target": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "ac": {
+      "type": "object",
+      "required": ["id", "given", "when", "then"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^AC-[0-9]+$" },
+        "given": { "type": "string", "minLength": 1 },
+        "when": { "type": "string", "minLength": 1 },
+        "then": { "type": "string", "minLength": 1 },
+        "priority": { "type": "string", "enum": ["P0", "P1", "P2", "P3"] }
+      },
+      "additionalProperties": false
+    },
+    "analytics": {
+      "type": "object",
+      "required": ["event"],
+      "properties": {
+        "event": { "type": "string" },
+        "properties": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "question": {
+      "type": "object",
+      "required": ["id", "question", "owner", "blocking"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^Q-[0-9]+$" },
+        "question": { "type": "string" },
+        "owner": { "type": "string" },
+        "due": { "type": "string", "format": "date" },
+        "blocking": { "type": "boolean" },
+        "answer": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "decision": {
+      "type": "object",
+      "required": ["id", "decision", "reason"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^D-[0-9]+$" },
+        "decision": { "type": "string" },
+        "reason": { "type": "string" },
+        "alternatives": { "type": "array", "items": { "type": "string" } },
+        "consequences": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "link": {
+      "type": "object",
+      "required": ["type", "ref"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["derives_from", "implements", "verifies", "impacts", "depends_on", "documents", "releases", "causes", "resolves", "duplicates", "supersedes"]
+        },
+        "ref": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

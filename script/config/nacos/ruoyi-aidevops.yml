@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    dynamic:
+      # Phase 0 与 system 共用 ry-cloud 库，后续可按需拆分为独立库
+      primary: master
+      datasource:
+        master:
+          type: ${spring.datasource.type}
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          url: ${datasource.system-master.url}
+          username: ${datasource.system-master.username}
+          password: ${datasource.system-master.password}
+
+# AI-DevOps 平台配置
+ai-devops:
+  event:
+    relay-interval: 5000
+    relay-batch-size: 100
+  ai:
+    # mock：无需模型密钥即可打通流程；openai：OpenAI 兼容接口
+    provider: mock
+    # DeepSeek / Qwen / vLLM / Ollama 等 OpenAI 兼容地址
+    base-url: https://api.deepseek.com/v1
+    api-key:
+    model: deepseek-chat
+    timeout-seconds: 60
+    max-tokens: 4096
+    temperature: 0.2

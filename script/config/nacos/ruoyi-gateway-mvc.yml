@@ -10,11 +10,13 @@ security:
       - /auth/register
       - /auth/tenant/list
       - /resource/sms/code
-      - /resource/sse/close
+      - /resource/message/close
       - /*/v3/api-docs
       - /*/error
       - /csrf
       - /warm-flow-ui/**
+      - /snail-chat/**
+      - /api/snail/chat/**
 
 spring:
   cloud:
@@ -64,10 +66,32 @@ spring:
               filters:
                 - StripPrefix=1
             # 资源服务
+            # SSE 兼容：前端使用 /resource/sse，后端消息模块路径为 /message
+            - id: ruoyi-resource-sse-close
+              uri: lb://ruoyi-resource
+              order: -11
+              predicates:
+                - Path=/resource/sse/close
+              filters:
+                - SetPath=/message/close
+            - id: ruoyi-resource-sse
+              uri: lb://ruoyi-resource
+              order: -10
+              predicates:
+                - Path=/resource/sse
+              filters:
+                - SetPath=/message
             - id: ruoyi-resource
               uri: lb://ruoyi-resource
               predicates:
                 - Path=/resource/**
+              filters:
+                - StripPrefix=1
+            # AI服务
+            - id: ruoyi-ai
+              uri: lb://ruoyi-ai
+              predicates:
+                - Path=/snail-ai/**
               filters:
                 - StripPrefix=1
             # workflow服务
@@ -82,6 +106,11 @@ spring:
               uri: lb://ruoyi-workflow
               predicates:
                 - Path=/warm-flow-ui/**,/warm-flow/**
+            # AI-DevOps 平台
+            - id: ruoyi-aidevops
+              uri: lb://ruoyi-aidevops
+              predicates:
+                - Path=/ai-devops/**
             # 演示服务
             - id: ruoyi-demo
               uri: lb://ruoyi-demo

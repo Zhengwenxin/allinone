@@ -84,6 +84,12 @@ spring:
               uri: lb://ruoyi-workflow
               predicates:
                 - Path=/warm-flow-ui/**,/warm-flow/**
+            # AI-DevOps 平台
+            # 不 StripPrefix：控制器本身以 /ai-devops 为前缀，服务直连与网关路径保持一致
+            - id: ruoyi-aidevops
+              uri: lb://ruoyi-aidevops
+              predicates:
+                - Path=/ai-devops/**
             # 演示服务
             - id: ruoyi-demo
               uri: lb://ruoyi-demo
